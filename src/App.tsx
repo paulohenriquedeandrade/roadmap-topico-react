@@ -1,36 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./components/Button";
 import { Card } from "./components/Card";
 import type { Selecao } from "./types";
 import { SelecaoForm } from "./components/SelecaoForm";
 
 function App() {
-  const [selecoes, setSelecoes] = useState<Selecao[]>([
-    {
-      id: 1,
-      nome: "Brasil",
-      grupo: "G",
-      titulos: 5,
-    },
-    {
-      id: 2,
-      nome: "Argentina",
-      grupo: "C",
-      titulos: 2,
-    },
-    {
-      id: 3,
-      nome: "França",
-      grupo: "D",
-      titulos: 2,
-    },
-    {
-      id: 4,
-      nome: "Alemanha",
-      grupo: "E",
-      titulos: 4,
-    },
-  ]);
+  const [selecoes, setSelecoes] = useState<Selecao[]>(() => {
+    const dadosSalvos = localStorage.getItem("selecoes");
+    return dadosSalvos ? JSON.parse(dadosSalvos) : [];
+  });
 
   const adicionarSelecao = (dados: {
     nome: string;
@@ -49,6 +27,10 @@ function App() {
   const deletarSelecao = (id: number) => {
     setSelecoes(selecoes.filter((selecao) => selecao.id !== id));
   };
+
+  useEffect(() => {
+    localStorage.setItem("selecoes", JSON.stringify(selecoes));
+  }, [selecoes]);
 
   return (
     <div>
