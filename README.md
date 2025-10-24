@@ -1,6 +1,6 @@
 # SPA React - Gerenciamento de Seleções Copa 2022
 
-Single Page Application desenvolvida em React com TypeScript, focada na criação de componentes reutilizáveis para gerenciamento de seleções da Copa do Mundo 2022.
+Single Page Application desenvolvida em React com TypeScript, focada na criação de componentes reutilizáveis e gerenciamento de estado para administração de seleções da Copa do Mundo 2022.
 
 ## Tecnologias Utilizadas
 
@@ -11,13 +11,13 @@ Single Page Application desenvolvida em React com TypeScript, focada na criaçã
 
 ## Descrição
 
-Este projeto demonstra a criação de componentes React reutilizáveis seguindo boas práticas de desenvolvimento. A aplicação simula uma interface de gerenciamento de seleções de futebol, permitindo visualizar informações de diferentes times.
+Este projeto demonstra a criação de componentes React reutilizáveis e gerenciamento de estado seguindo boas práticas de desenvolvimento. A aplicação permite adicionar, visualizar e remover seleções de futebol, com persistência de dados no navegador.
 
 ## Componentes Criados
 
 ### 1. Button
 
-Componente de botão reutilizável com suporte a diferentes variantes visuais.
+Componente de botão reutilizável com suporte a diferentes variantes visuais e tipos.
 
 **Props:**
 
@@ -27,6 +27,7 @@ Componente de botão reutilizável com suporte a diferentes variantes visuais.
 | onClick  | () => void                           | Sim         | Função executada ao clicar                 |
 | variant  | "primary" \| "secondary" \| "danger" | Não         | Variante visual do botão (padrão: primary) |
 | disabled | boolean                              | Não         | Se o botão está desabilitado               |
+| type     | "button" \| "submit" \| "reset"      | Não         | Tipo do botão HTML (padrão: button)        |
 
 **Exemplo de uso:**
 
@@ -37,6 +38,10 @@ Componente de botão reutilizável com suporte a diferentes variantes visuais.
 
 <Button onClick={handleDelete} variant="danger" disabled>
   Excluir
+</Button>
+
+<Button type="submit" variant="primary">
+  Enviar
 </Button>
 ```
 
@@ -97,6 +102,127 @@ Componente de input controlado com label opcional e suporte a diferentes tipos.
   value={nome}
   onChange={setNome}
 />
+
+<Input
+  label="Títulos"
+  type="number"
+  value={String(titulos)}
+  onChange={(value) => setTitulos(Number(value))}
+/>
+```
+
+### 4. SelecaoForm
+
+Componente de formulário para adicionar novas seleções, demonstrando uso de múltiplos estados locais.
+
+**Props:**
+
+| Prop     | Tipo                     | Obrigatório | Descrição                                 |
+| -------- | ------------------------ | ----------- | ----------------------------------------- |
+| onSubmit | (selecao: {...}) => void | Sim         | Callback executado ao submeter formulário |
+
+**Exemplo de uso:**
+
+```typescript
+<SelecaoForm onSubmit={adicionarSelecao} />
+```
+
+## Gerenciamento de Estado e Comunicação
+
+### useState
+
+O hook `useState` é utilizado em diferentes contextos na aplicação:
+
+**No formulário (SelecaoForm):**
+
+- Gerencia o estado local de cada campo do formulário (nome, grupo, títulos)
+- Permite criar inputs controlados onde React controla o valor
+- Limpa os campos após submissão
+
+**No App:**
+
+- Gerencia a lista completa de seleções
+- Permite adicionar e remover itens do array
+- Causa re-renderização quando o estado muda
+
+### useEffect
+
+O hook `useEffect` é usado para sincronizar o estado com o localStorage:
+
+**Carregamento inicial:**
+
+- Ao montar o componente, verifica se existem dados salvos no localStorage
+- Se existirem, carrega as seleções salvas
+- Se não, inicia com array vazio
+
+**Persistência automática:**
+
+- Monitora mudanças no array de seleções (dependência: `[selecoes]`)
+- Sempre que o array muda (adição/remoção), salva automaticamente no localStorage
+- Garante que os dados persistam mesmo após recarregar a página
+
+### Comunicação Entre Componentes
+
+A aplicação demonstra diferentes padrões de comunicação:
+
+**Pai para Filho (Props):**
+
+- App passa `onSubmit` para SelecaoForm
+- App passa dados de cada seleção para Card via props
+- App passa funções (`deletarSelecao`) via onClick dos botões
+
+**Filho para Pai (Callbacks):**
+
+- SelecaoForm notifica App quando formulário é enviado via `onSubmit`
+- Button notifica componentes pais via `onClick`
+- Card executa callbacks recebidas nos botões do footer
+
+**Fluxo de dados unidirecional:**
+
+- Dados fluem de cima para baixo (App → componentes filhos)
+- Eventos fluem de baixo para cima (componentes filhos → App via callbacks)
+- App é a única fonte de verdade do estado
+
+### Funcionalidades Implementadas
+
+**Adicionar Seleção:**
+
+1. Usuário preenche formulário
+2. Ao submeter, SelecaoForm chama callback `onSubmit`
+3. App recebe os dados e adiciona ao estado
+4. useEffect detecta mudança e salva no localStorage
+5. Componente re-renderiza mostrando nova seleção
+
+**Deletar Seleção:**
+
+1. Usuário clica em "Deletar" no Card
+2. onClick executa callback `deletarSelecao` com o ID
+3. App filtra o array removendo a seleção
+4. useEffect salva estado atualizado
+5. Componente re-renderiza sem a seleção deletada
+
+**Persistência de Dados:**
+
+- Todas as operações são automaticamente salvas no localStorage
+- Ao recarregar a página, dados são restaurados
+- Não há perda de informações entre sessões
+
+### Exemplo de Fluxo Completo
+
+```
+Usuário preenche formulário
+        ↓
+SelecaoForm executa onSubmit(dados)
+        ↓
+App.adicionarSelecao() atualiza estado
+        ↓
+setSelecoes causa re-renderização
+        ↓
+useEffect detecta mudança em [selecoes]
+        ↓
+localStorage.setItem salva dados
+        ↓
+Interface atualiza mostrando novo Card
 ```
 
 ## Estrutura do Projeto
@@ -109,7 +235,9 @@ src/
 │   ├── Card.tsx
 │   ├── Card.css
 │   ├── Input.tsx
-│   └── Input.css
+│   ├── Input.css
+│   ├── SelecaoForm.tsx
+├── types.ts
 ├── App.tsx
 ├── main.tsx
 └── index.css
@@ -124,6 +252,7 @@ Todos os componentes seguem os seguintes princípios:
 3. **Customização:** Variants e estilos permitem adaptar aparência
 4. **Acessibilidade:** Suporte a estados desabilitados e semântica HTML correta
 5. **Reutilização:** Podem ser usados múltiplas vezes com props diferentes
+6. **Controle:** Inputs controlados garantem que React seja a fonte da verdade
 
 ## Como Executar
 
@@ -153,19 +282,11 @@ pnpm build
 pnpm preview
 ```
 
-## Funcionalidades Demonstradas
+## Funcionalidades da Aplicação
 
-- Interface de listagem de seleções em grid responsivo
-- Utilização de componentes reutilizáveis com props diferentes
-- Estilização modular com CSS
-- Interações com eventos (onClick)
-- Renderização condicional (title e footer opcionais no Card)
-
-## Exemplo de Aplicação
-
-A aplicação demonstra o uso dos componentes criando uma interface de gerenciamento que exibe:
-
-- Cards com informações de 4 seleções (Brasil, Argentina, França, Alemanha)
-- Cada card mostra: grupo, pontuação, títulos conquistados e jogadores-chave
-- Botões de ação no rodapé de cada card
-- Layout responsivo em grid de 3 colunas
+- Adicionar novas seleções através de formulário
+- Visualizar lista de seleções em cards
+- Deletar seleções existentes
+- Persistência automática de dados no localStorage
+- Interface responsiva e componentizada
+- Validação de tipos em tempo de desenvolvimento com TypeScript
