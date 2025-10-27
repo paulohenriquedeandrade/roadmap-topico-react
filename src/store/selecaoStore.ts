@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import type { Selecao } from "../types";
 
 interface SelecaoState {
@@ -11,22 +12,29 @@ interface SelecaoState {
   deletarSelecao: (id: number) => void;
 }
 
-export const useSelecaoStore = create<SelecaoState>((set) => ({
-  selecoes: [],
-  adicionarSelecao: (dados) => {
-    set((state) => ({
-      selecoes: [
-        ...state.selecoes,
-        {
-          id: state.selecoes.length + 1,
-          ...dados,
-        },
-      ],
-    }));
-  },
-  deletarSelecao: (id) => {
-    set((state) => ({
-      selecoes: state.selecoes.filter((selecao) => selecao.id !== id),
-    }));
-  },
-}));
+export const useSelecaoStore = create(
+  persist<SelecaoState>(
+    (set) => ({
+      selecoes: [],
+      adicionarSelecao: (dados) => {
+        set((state) => ({
+          selecoes: [
+            ...state.selecoes,
+            {
+              id: state.selecoes.length + 1,
+              ...dados,
+            },
+          ],
+        }));
+      },
+      deletarSelecao: (id) => {
+        set((state) => ({
+          selecoes: state.selecoes.filter((selecao) => selecao.id !== id),
+        }));
+      },
+    }),
+    {
+      name: "selecao-storage",
+    }
+  )
+);
