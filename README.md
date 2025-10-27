@@ -1,17 +1,18 @@
 # SPA React - Gerenciamento de Seleções Copa 2022
 
-Single Page Application desenvolvida em React com TypeScript, focada na criação de componentes reutilizáveis e gerenciamento de estado para administração de seleções da Copa do Mundo 2022.
+Single Page Application desenvolvida em React com TypeScript, focada na criação de componentes reutilizáveis e gerenciamento de estado global para administração de seleções da Copa do Mundo 2022.
 
 ## Tecnologias Utilizadas
 
 - React
 - TypeScript
 - Vite
+- Zustand
 - CSS3
 
 ## Descrição
 
-Este projeto demonstra a criação de componentes React reutilizáveis e gerenciamento de estado seguindo boas práticas de desenvolvimento. A aplicação permite adicionar, visualizar e remover seleções de futebol, com persistência de dados no navegador.
+Este projeto demonstra a criação de componentes React reutilizáveis, gerenciamento de estado local e global seguindo boas práticas de desenvolvimento. A aplicação permite adicionar, visualizar e remover seleções de futebol, com persistência automática de dados no navegador usando Zustand.
 
 ## Componentes Criados
 
@@ -127,103 +128,243 @@ Componente de formulário para adicionar novas seleções, demonstrando uso de m
 <SelecaoForm onSubmit={adicionarSelecao} />
 ```
 
-## Gerenciamento de Estado e Comunicação
+## Gerenciamento de Estado
 
-### useState
+### useState (Estado Local)
 
-O hook `useState` é utilizado em diferentes contextos na aplicação:
+O hook `useState` é utilizado para estado local de componentes:
 
 **No formulário (SelecaoForm):**
 
-- Gerencia o estado local de cada campo do formulário (nome, grupo, títulos)
+- Gerencia o estado de cada campo do formulário (nome, grupo, títulos)
 - Permite criar inputs controlados onde React controla o valor
 - Limpa os campos após submissão
 
-**No App:**
+**Características:**
 
-- Gerencia a lista completa de seleções
-- Permite adicionar e remover itens do array
-- Causa re-renderização quando o estado muda
+- Estado privado do componente
+- Não compartilhado com outros componentes
+- Ideal para formulários e interações locais
+
+---
+
+### Zustand (Estado Global)
+
+O Zustand é uma biblioteca minimalista para gerenciamento de estado global no React.
+
+#### Por que usar Zustand?
+
+**Problema do Prop Drilling:**
+
+```
+App (tem estado)
+ ├── Form (precisa da função adicionar)
+ ├── Card (precisa da função deletar)
+ └── Card
+     └── Button (precisa da função deletar)
+```
+
+Passar props por múltiplos níveis é trabalhoso e dificulta manutenção.
+
+**Solução com Zustand:**
+
+```
+Store Global (estado centralizado)
+    ↓
+Qualquer componente acessa diretamente
+```
+
+#### Estrutura da Store
+
+**Localização:** `src/store/selecaoStore.ts`
+
+A store é composta por:
+
+**1. Interface do Estado:**
+
+```typescript
+interface SelecaoState {
+  selecoes: Selecao[];              // estado (array de seleções)
+  adicionarSelecao: (...) => void;  // ação para adicionar
+  deletarSelecao: (...) => void;    // ação para deletar
+}
+```
+
+**2. Criação da Store:**
+
+```typescript
+export const useSelecaoStore = create(
+  persist<SelecaoState>(
+    (set) => ({
+      // estado inicial e ações
+    }),
+    { name: "selecoes-storage" }
+  )
+);
+```
+
+**3. Estado Inicial:**
+
+```typescript
+selecoes: [];
+```
+
+**4. Ações (Funções que modificam o estado):**
+
+```typescript
+adicionarSelecao: (dados) => {
+  set((state) => ({
+    selecoes: [...state.selecoes, { id: ..., ...dados }]
+  }));
+}
+
+deletarSelecao: (id) => {
+  set((state) => ({
+    selecoes: state.selecoes.filter(s => s.id !== id)
+  }));
+}
+```
+
+#### Como usar a Store
+
+**Acessar estado e ações:**
+
+```typescript
+// Pegar apenas as seleções
+const selecoes = useSelecaoStore((state) => state.selecoes);
+
+// Pegar apenas uma função
+const adicionarSelecao = useSelecaoStore((state) => state.adicionarSelecao);
+
+// Pegar múltiplas coisas
+const { selecoes, adicionarSelecao, deletarSelecao } = useSelecaoStore();
+```
+
+**Em qualquer componente:**
+
+```typescript
+import { useSelecaoStore } from "./store/selecaoStore";
+
+function MeuComponente() {
+  const selecoes = useSelecaoStore((state) => state.selecoes);
+
+  return <div>Total: {selecoes.length}</div>;
+}
+```
+
+#### Middleware Persist
+
+O Zustand utiliza o middleware `persist` para salvar automaticamente no localStorage:
+
+**Configuração:**
+
+```typescript
+persist<SelecaoState>(
+  (set) => ({ ... }),
+  {
+    name: 'selecoes-storage', // chave no localStorage
+  }
+)
+```
+
+**Funcionamento:**
+
+- Toda mudança no estado é automaticamente salva no localStorage
+- Ao carregar a página, o estado é restaurado automaticamente
+- Não precisa de useEffect manual
+- Funciona de forma transparente
+
+**Verificar no navegador:**
+
+1. F12 → Application/Storage
+2. Local Storage → localhost
+3. Chave: `selecoes-storage`
+4. Valor: JSON com todas as seleções
+
+#### Vantagens do Zustand
+
+**1. Sem Prop Drilling:**
+
+- Componentes acessam estado diretamente
+- Não precisa passar props por múltiplos níveis
+- Código mais limpo e manutenível
+
+**2. Simplicidade:**
+
+- API minimalista e intuitiva
+- Menos boilerplate que Redux
+- Fácil de aprender e usar
+
+**3. TypeScript First:**
+
+- Suporte completo a tipos
+- Autocomplete em todas as operações
+- Type safety garantido
+
+**4. Performance:**
+
+- Componentes só re-renderizam quando suas dependências mudam
+- Seleção granular de estado
+- Otimizado por padrão
+
+**5. Persistência Fácil:**
+
+- Middleware persist integrado
+- Configuração em 2 linhas
+- Sincronização automática
+
+**6. DevTools:**
+
+- Integração com Redux DevTools
+- Debug facilitado
+- Inspeção de estado e ações
+
+#### Comparação: useState vs Zustand
+
+| Aspecto          | useState                    | Zustand                          |
+| ---------------- | --------------------------- | -------------------------------- |
+| Escopo           | Local (componente)          | Global (aplicação)               |
+| Compartilhamento | Via props (prop drilling)   | Acesso direto                    |
+| Persistência     | useEffect manual            | Middleware persist               |
+| Performance      | Re-renderiza componente pai | Re-renderiza apenas consumidores |
+| Complexidade     | Simples para estado local   | Simples para estado global       |
+| Melhor para      | Formulários, toggles        | Estado compartilhado, cache      |
 
 ### useEffect
 
-O hook `useEffect` é usado para sincronizar o estado com o localStorage:
+O hook `useEffect` foi inicialmente usado para sincronizar com localStorage, mas foi substituído pelo middleware `persist` do Zustand que faz isso automaticamente.
 
-**Carregamento inicial:**
+**Uso anterior (com useState):**
 
-- Ao montar o componente, verifica se existem dados salvos no localStorage
-- Se existirem, carrega as seleções salvas
-- Se não, inicia com array vazio
+```typescript
+useEffect(() => {
+  localStorage.setItem("selecoes", JSON.stringify(selecoes));
+}, [selecoes]);
+```
 
-**Persistência automática:**
+**Atualmente (com Zustand persist):**
 
-- Monitora mudanças no array de seleções (dependência: `[selecoes]`)
-- Sempre que o array muda (adição/remoção), salva automaticamente no localStorage
-- Garante que os dados persistam mesmo após recarregar a página
+- Não precisa de useEffect
+- Persistência automática
+- Menos código para manter
 
 ### Comunicação Entre Componentes
-
-A aplicação demonstra diferentes padrões de comunicação:
 
 **Pai para Filho (Props):**
 
 - App passa `onSubmit` para SelecaoForm
-- App passa dados de cada seleção para Card via props
-- App passa funções (`deletarSelecao`) via onClick dos botões
+- Dados fluem de cima para baixo
 
 **Filho para Pai (Callbacks):**
 
-- SelecaoForm notifica App quando formulário é enviado via `onSubmit`
-- Button notifica componentes pais via `onClick`
-- Card executa callbacks recebidas nos botões do footer
+- SelecaoForm notifica App via callback
+- Eventos fluem de baixo para cima
 
-**Fluxo de dados unidirecional:**
+**Acesso Global (Zustand):**
 
-- Dados fluem de cima para baixo (App → componentes filhos)
-- Eventos fluem de baixo para cima (componentes filhos → App via callbacks)
-- App é a única fonte de verdade do estado
-
-### Funcionalidades Implementadas
-
-**Adicionar Seleção:**
-
-1. Usuário preenche formulário
-2. Ao submeter, SelecaoForm chama callback `onSubmit`
-3. App recebe os dados e adiciona ao estado
-4. useEffect detecta mudança e salva no localStorage
-5. Componente re-renderiza mostrando nova seleção
-
-**Deletar Seleção:**
-
-1. Usuário clica em "Deletar" no Card
-2. onClick executa callback `deletarSelecao` com o ID
-3. App filtra o array removendo a seleção
-4. useEffect salva estado atualizado
-5. Componente re-renderiza sem a seleção deletada
-
-**Persistência de Dados:**
-
-- Todas as operações são automaticamente salvas no localStorage
-- Ao recarregar a página, dados são restaurados
-- Não há perda de informações entre sessões
-
-### Exemplo de Fluxo Completo
-
-```
-Usuário preenche formulário
-        ↓
-SelecaoForm executa onSubmit(dados)
-        ↓
-App.adicionarSelecao() atualiza estado
-        ↓
-setSelecoes causa re-renderização
-        ↓
-useEffect detecta mudança em [selecoes]
-        ↓
-localStorage.setItem salva dados
-        ↓
-Interface atualiza mostrando novo Card
-```
+- Qualquer componente acessa a store diretamente
+- Não precisa de props ou callbacks
+- Comunicação direta com o estado
 
 ## Estrutura do Projeto
 
@@ -236,23 +377,24 @@ src/
 │   ├── Card.css
 │   ├── Input.tsx
 │   ├── Input.css
-│   ├── SelecaoForm.tsx
+│   └── SelecaoForm.tsx
+├── store/
+│   └── selecaoStore.ts
 ├── types.ts
 ├── App.tsx
 ├── main.tsx
 └── index.css
 ```
 
-## Princípios dos Componentes Reutilizáveis
+## Funcionalidades da Aplicação
 
-Todos os componentes seguem os seguintes princípios:
-
-1. **Tipagem forte com TypeScript:** Interfaces bem definidas para todas as props
-2. **Flexibilidade:** Props opcionais permitem diferentes casos de uso
-3. **Customização:** Variants e estilos permitem adaptar aparência
-4. **Acessibilidade:** Suporte a estados desabilitados e semântica HTML correta
-5. **Reutilização:** Podem ser usados múltiplas vezes com props diferentes
-6. **Controle:** Inputs controlados garantem que React seja a fonte da verdade
+- Adicionar novas seleções através de formulário
+- Visualizar lista de seleções em cards
+- Deletar seleções existentes
+- Persistência automática de dados com Zustand persist
+- Estado global acessível por qualquer componente
+- Interface responsiva e componentizada
+- Validação de tipos em tempo de desenvolvimento com TypeScript
 
 ## Como Executar
 
@@ -282,11 +424,37 @@ pnpm build
 pnpm preview
 ```
 
-## Funcionalidades da Aplicação
+## Conceitos React Demonstrados
 
-- Adicionar novas seleções através de formulário
-- Visualizar lista de seleções em cards
-- Deletar seleções existentes
-- Persistência automática de dados no localStorage
-- Interface responsiva e componentizada
-- Validação de tipos em tempo de desenvolvimento com TypeScript
+- **Componentes Funcionais:** Todos os componentes usam função + hooks
+- **Props:** Passagem de dados de pai para filho
+- **Callbacks:** Comunicação de filho para pai
+- **useState:** Gerenciamento de estado local (formulários)
+- **Zustand:** Gerenciamento de estado global (lista de seleções)
+- **Controlled Components:** Inputs controlados pelo React
+- **Renderização Condicional:** Elementos opcionais baseados em props
+- **Listas e Keys:** Renderização dinâmica com .map()
+- **Event Handling:** Manipulação de eventos de formulário e cliques
+- **Middleware:** Uso de persist para localStorage
+- **Imutabilidade:** Atualização de estado sem mutação
+
+## Entregas Implementadas
+
+### Tópico 17: Componentes Reutilizáveis
+
+- Button, Card, Input
+- Props tipadas com TypeScript
+- Variants e customização
+
+### Tópico 18: Estado e Comunicação
+
+- useState para estado local
+- Props e callbacks para comunicação
+- Formulários controlados
+
+### Tópico 19: Estado Global com Zustand
+
+- Store centralizada
+- Ações imutáveis
+- Middleware persist para localStorage
+- Eliminação de prop drilling
