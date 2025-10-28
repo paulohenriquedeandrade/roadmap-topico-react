@@ -13,6 +13,9 @@ export const SelecaoForm = ({ onSubmit }: SelecaoFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!nome || !grupo) return;
+
     onSubmit({ nome, grupo, titulos });
     setNome("");
     setGrupo("");
