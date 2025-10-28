@@ -8,7 +8,7 @@ Single Page Application desenvolvida em React com TypeScript, focada na criaçã
 - TypeScript
 - Vite
 - Zustand
-- CSS3
+- Tailwind CSS
 
 ## Descrição
 
@@ -18,7 +18,7 @@ Este projeto demonstra a criação de componentes React reutilizáveis, gerencia
 
 ### 1. Button
 
-Componente de botão reutilizável com suporte a diferentes variantes visuais e tipos.
+Componente de botão reutilizável com suporte a diferentes variantes visuais e tipos, estilizado com Tailwind CSS.
 
 **Props:**
 
@@ -30,25 +30,9 @@ Componente de botão reutilizável com suporte a diferentes variantes visuais e 
 | disabled | boolean                              | Não         | Se o botão está desabilitado               |
 | type     | "button" \| "submit" \| "reset"      | Não         | Tipo do botão HTML (padrão: button)        |
 
-**Exemplo de uso:**
-
-```typescript
-<Button onClick={handleClick} variant="primary">
-  Clique aqui
-</Button>
-
-<Button onClick={handleDelete} variant="danger" disabled>
-  Excluir
-</Button>
-
-<Button type="submit" variant="primary">
-  Enviar
-</Button>
-```
-
 ### 2. Card
 
-Componente de card para agrupar conteúdo relacionado com título e rodapé opcionais.
+Componente de card para agrupar conteúdo relacionado com título e rodapé opcionais, estilizado com Tailwind CSS.
 
 **Props:**
 
@@ -58,30 +42,9 @@ Componente de card para agrupar conteúdo relacionado com título e rodapé opci
 | children | React.ReactNode | Sim         | Conteúdo principal do card             |
 | footer   | React.ReactNode | Não         | Conteúdo do rodapé (geralmente botões) |
 
-**Exemplo de uso:**
-
-```typescript
-<Card
-  title="Brasil"
-  footer={
-    <>
-      <Button variant="secondary" onClick={handleView}>
-        Ver Detalhes
-      </Button>
-      <Button variant="primary" onClick={handleEdit}>
-        Editar
-      </Button>
-    </>
-  }
->
-  <p>Grupo G - Pontos: 9</p>
-  <p>Títulos: 5</p>
-</Card>
-```
-
 ### 3. Input
 
-Componente de input controlado com label opcional e suporte a diferentes tipos.
+Componente de input controlado com label opcional e suporte a diferentes tipos, estilizado com Tailwind CSS.
 
 **Props:**
 
@@ -94,24 +57,6 @@ Componente de input controlado com label opcional e suporte a diferentes tipos.
 | onChange    | (value: string) => void | Sim         | Função chamada ao mudar o valor   |
 | disabled    | boolean                 | Não         | Se o input está desabilitado      |
 
-**Exemplo de uso:**
-
-```typescript
-<Input
-  label="Nome da Seleção"
-  placeholder="Digite o nome..."
-  value={nome}
-  onChange={setNome}
-/>
-
-<Input
-  label="Títulos"
-  type="number"
-  value={String(titulos)}
-  onChange={(value) => setTitulos(Number(value))}
-/>
-```
-
 ### 4. SelecaoForm
 
 Componente de formulário para adicionar novas seleções, demonstrando uso de múltiplos estados locais.
@@ -121,12 +66,6 @@ Componente de formulário para adicionar novas seleções, demonstrando uso de m
 | Prop     | Tipo                     | Obrigatório | Descrição                                 |
 | -------- | ------------------------ | ----------- | ----------------------------------------- |
 | onSubmit | (selecao: {...}) => void | Sim         | Callback executado ao submeter formulário |
-
-**Exemplo de uso:**
-
-```typescript
-<SelecaoForm onSubmit={adicionarSelecao} />
-```
 
 ## Gerenciamento de Estado
 
@@ -372,11 +311,8 @@ useEffect(() => {
 src/
 ├── components/
 │   ├── Button.tsx
-│   ├── Button.css
 │   ├── Card.tsx
-│   ├── Card.css
 │   ├── Input.tsx
-│   ├── Input.css
 │   └── SelecaoForm.tsx
 ├── store/
 │   └── selecaoStore.ts
@@ -393,7 +329,7 @@ src/
 - Deletar seleções existentes
 - Persistência automática de dados com Zustand persist
 - Estado global acessível por qualquer componente
-- Interface responsiva e componentizada
+- Interface responsiva mobile-first com Tailwind CSS
 - Validação de tipos em tempo de desenvolvimento com TypeScript
 
 ## Como Executar
@@ -407,22 +343,10 @@ pnpm install
 ### Desenvolvimento
 
 ```bash
-pnpm dev
+pnpm run dev
 ```
 
 Acesse: `http://localhost:5173`
-
-### Build para Produção
-
-```bash
-pnpm build
-```
-
-### Preview da Build
-
-```bash
-pnpm preview
-```
 
 ## Conceitos React Demonstrados
 
@@ -437,6 +361,8 @@ pnpm preview
 - **Event Handling:** Manipulação de eventos de formulário e cliques
 - **Middleware:** Uso de persist para localStorage
 - **Imutabilidade:** Atualização de estado sem mutação
+- **Tailwind CSS@:** Estilização utility-first e responsiva
+- **Design Mobile-First:** Uso de breakpoints do Tailwind para responsividade
 
 ## Entregas Implementadas
 
@@ -458,3 +384,9 @@ pnpm preview
 - Ações imutáveis
 - Middleware persist para localStorage
 - Eliminação de prop drilling
+
+### Tópico 20: Estilização com Tailwind CSS
+
+- Configuração do Tailwind CSS no projeto
+- Refatoração de Button, Card e Input para uso de classes utilitárias do Tailwind
+- Aplicação de design mobile-first e cores temáticas da Copa
