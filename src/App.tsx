@@ -8,7 +8,9 @@ function App() {
 
   return (
     <div>
-      <h1>Gerenciamento de Seleções - Copa 2022</h1>
+      <h1 className="text-4xl font-bold text-blue-600">
+        Gerenciamento de Seleções - Copa 2022
+      </h1>
       <SelecaoForm onSubmit={adicionarSelecao} />
       {selecoes.map((selecao) => (
         <Card
