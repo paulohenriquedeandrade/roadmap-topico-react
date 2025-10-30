@@ -15,7 +15,7 @@ export const Login = () => {
     e.preventDefault();
     try {
       await login({ email, password });
-      navigate("/");
+      navigate("/home");
     } catch (err) {
       setError(`Login failed: ${(err as Error).message}`);
     }
