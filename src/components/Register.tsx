@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Input } from "./Input";
 import { Button } from "./Button";
@@ -9,12 +10,13 @@ export const Register = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await register({ name, email, password });
-      alert("Registration successful!");
+      navigate("/login");
     } catch (err) {
       setError(`Registration failed: ${(err as Error).message}`);
     }
@@ -39,7 +41,7 @@ export const Register = () => {
         </div>
         <Button type="submit">Registrar</Button>
       </form>
-      <a href="/login">Já tem conta? Faça login</a>
+      <Link to="/login">Já tem conta? Faça login</Link>
     </div>
   );
 };
